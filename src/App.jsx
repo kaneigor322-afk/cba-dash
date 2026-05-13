@@ -21,37 +21,6 @@ import {
     RotateCcw,
 } from 'lucide-react';
 
-// Sample data extracted from the spreadsheet.
-// Production sources:
-//   - row data: BigQuery
-//   - ios/android status & store version: App Store Connect API & Google Play Developer API
-//   - tickets: Zendesk API (returns title + url + id)
-const INITIAL_DATA = [
-    { id: 1,  eventDate: '2026-05-04', endDate: '2026-05-06', eventId: 777777777, accountId: 777777777, eventName: 'Alpha Summit 2026',        accountName: 'Acme Corp',          whiteLabel: 'Acme Events',     appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Krystyna', ios: 'Updated',                        android: 'In review',                  tickets: [] },
-    { id: 2,  eventDate: '2026-05-04', endDate: '2026-05-07', eventId: 777777777, accountId: 777777777, eventName: 'Beta Conference 2026',       accountName: 'Bright Solutions',   whiteLabel: 'Bright App',      appleDev: 'Sample Apple Dev', googleDev: null,                owner: 'Krystyna', ios: 'In progress',                    android: 'In progress',                tickets: [] },
-    { id: 3,  eventDate: '2026-05-04', endDate: '2026-05-06', eventId: 777777777, accountId: 777777777, eventName: 'Cloud Expo 2026',            accountName: 'Catalyst Group',     whiteLabel: 'Catalyst',        appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 4,  eventDate: '2026-05-05', endDate: '2026-05-07', eventId: 777777777, accountId: 777777777, eventName: 'Delta Forum 2026',           accountName: 'Dynamo Inc',         whiteLabel: 'Dynamo Events',   appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Marina',   ios: 'Updated',                        android: 'Updated',                    tickets: [] },
-    { id: 5,  eventDate: '2026-05-05', endDate: '2026-05-07', eventId: 777777777, accountId: 777777777, eventName: 'Elevate 2026',               accountName: 'Echo Systems',       whiteLabel: 'Echo App',        appleDev: null,               googleDev: null,                owner: 'Krystyna', ios: 'Updated',                        android: 'Updated',                    tickets: [] },
-    { id: 6,  eventDate: '2026-05-05', endDate: '2026-05-07', eventId: 777777777, accountId: 777777777, eventName: 'Future Tech Summit 2026',    accountName: 'Forge Partners',     whiteLabel: 'Forge Events',    appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Ilia',     ios: 'In review',                      android: 'Updated',                    tickets: [] },
-    { id: 7,  eventDate: '2026-05-11', endDate: '2026-05-14', eventId: 777777777, accountId: 777777777, eventName: 'Global Connect 2026',        accountName: 'Griffin Tech',       whiteLabel: 'Griffin App',     appleDev: null,               googleDev: null,                owner: 'Ilia',     ios: 'License issue/no access to acc', android: 'License issue/no access to acc', tickets: [{ id: 777777, title: 'License renewal blocking dual-platform build', url: 'https://bizzabo.zendesk.com/agent/tickets/777777' }] },
-    { id: 8,  eventDate: '2026-05-11', endDate: '2026-05-14', eventId: 777777777, accountId: 777777777, eventName: 'Horizon Summit 2026',        accountName: 'Harbor Group',       whiteLabel: 'Harbor Events',   appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Marina',   ios: 'Updated',                        android: 'Updated',                    tickets: [{ id: 777778, title: 'App Store metadata review feedback', url: 'https://bizzabo.zendesk.com/agent/tickets/777778' }] },
-    { id: 9,  eventDate: '2026-05-11', endDate: '2026-05-14', eventId: 777777777, accountId: 777777777, eventName: 'Impact Forum 2026',          accountName: 'Insight Co',         whiteLabel: 'Insight App',     appleDev: null,               googleDev: null,                owner: 'Ilia',     ios: null,                             android: null,                         tickets: [] },
-    { id: 10, eventDate: '2026-05-12', endDate: '2026-05-13', eventId: 777777777, accountId: 777777777, eventName: 'Journey Conference 2026',    accountName: 'Junction Labs',      whiteLabel: 'Junction Events', appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 11, eventDate: '2026-05-12', endDate: '2026-05-14', eventId: 777777777, accountId: 777777777, eventName: 'Keynote 2026',               accountName: 'Keystone Corp',      whiteLabel: 'Keystone App',    appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Krystyna', ios: null,                             android: null,                         tickets: [] },
-    { id: 12, eventDate: '2026-05-12', endDate: '2026-05-14', eventId: 777777777, accountId: 777777777, eventName: 'Leadership Summit 2026',     accountName: 'Lattice Corp',       whiteLabel: 'Lattice Events',  appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: 'Krystyna', ios: null,                             android: null,                         tickets: [] },
-    { id: 13, eventDate: '2026-05-12', endDate: '2026-05-16', eventId: 777777777, accountId: 777777777, eventName: 'Maven Conference 2026',      accountName: 'Meridian Group',     whiteLabel: 'Meridian App',    appleDev: null,               googleDev: null,                owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 14, eventDate: '2026-05-12', endDate: '2026-05-12', eventId: 777777777, accountId: 777777777, eventName: 'Nexus Forum 2026',           accountName: 'Nova Group',         whiteLabel: 'Nova Events',     appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 15, eventDate: '2026-05-18', endDate: '2026-05-20', eventId: 777777777, accountId: 777777777, eventName: 'Omni Summit 2026',           accountName: 'Orbit Inc',          whiteLabel: 'Orbit App',       appleDev: null,               googleDev: null,                owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 16, eventDate: '2026-05-18', endDate: '2026-05-20', eventId: 777777777, accountId: 777777777, eventName: 'Pinnacle 2026',              accountName: 'Pinnacle Co',        whiteLabel: 'Pinnacle Events', appleDev: null,               googleDev: null,                owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 17, eventDate: '2026-05-19', endDate: '2026-05-21', eventId: 777777777, accountId: 777777777, eventName: 'Quantum Forum 2026',         accountName: 'Quantum Group',      whiteLabel: 'Quantum App',     appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 18, eventDate: '2026-05-19', endDate: '2026-05-21', eventId: 777777777, accountId: 777777777, eventName: 'Rise Conference 2026',       accountName: 'Radius Corp',        whiteLabel: 'Radius Events',   appleDev: null,               googleDev: null,                owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 19, eventDate: '2026-05-20', endDate: '2026-05-21', eventId: 777777777, accountId: 777777777, eventName: 'Summit Connect 2026',        accountName: 'Spectrum Inc',       whiteLabel: 'Spectrum App',    appleDev: null,               googleDev: null,                owner: 'Marina',   ios: 'In review',                      android: 'In review',                  tickets: [] },
-    { id: 20, eventDate: '2026-05-21', endDate: '2026-05-21', eventId: 777777777, accountId: 777777777, eventName: 'Transform 2026',             accountName: 'Titan Group',        whiteLabel: 'Titan Events',    appleDev: null,               googleDev: null,                owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 21, eventDate: '2026-05-22', endDate: '2026-05-23', eventId: 777777777, accountId: 777777777, eventName: 'Unity Forum 2026',           accountName: 'Unity Corp',         whiteLabel: 'Unity App',       appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 22, eventDate: '2026-05-27', endDate: '2026-05-27', eventId: 777777777, accountId: 777777777, eventName: 'Venture Summit 2026',        accountName: 'Vertex Inc',         whiteLabel: 'Vertex Events',   appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-    { id: 23, eventDate: '2026-05-30', endDate: '2026-05-31', eventId: 777777777, accountId: 777777777, eventName: 'Wavelength 2026',            accountName: 'Zenith Group',       whiteLabel: 'Zenith App',      appleDev: 'Sample Apple Dev', googleDev: 'Sample Google Dev', owner: null,       ios: null,                             android: null,                         tickets: [] },
-];
-
 const APP_VERSION = '7.10056';
 const OWNERS = ['Krystyna', 'Marina', 'Ilia'];
 
@@ -115,6 +84,16 @@ const NULL_STATUS = {
 };
 
 const NO_DEV_PRIORITY = 6;
+
+const CELL_BG = {
+    'Updated':                       'bg-emerald-50/60',
+    'In review':                     'bg-amber-50/70',
+    'In progress':                   'bg-sky-50/70',
+    'License issue/no access to acc':'bg-rose-50/70',
+};
+
+const cellBg = (status, hasDev) =>
+    hasDev && status ? (CELL_BG[status] || '') : '';
 
 const OWNER_COLORS = {
     Krystyna: 'bg-violet-100 text-violet-800 ring-violet-300/50',
@@ -187,28 +166,77 @@ const OwnerSelect = ({ value, onChange }) => {
     );
 };
 
-const TicketLinks = ({ tickets }) => {
-    if (!tickets || tickets.length === 0) return <span className="text-stone-300">—</span>;
+const TicketLinks = ({ tickets, onTicketsChange }) => {
+    const [inputVal, setInputVal] = useState('');
+    const [editing, setEditing] = useState(false);
+    const inputRef = useRef(null);
+
+    useEffect(() => {
+        if (editing) inputRef.current?.focus();
+    }, [editing]);
+
+    const addTicket = () => {
+        const raw = inputVal.trim();
+        if (!raw) return;
+        const url = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+        const numMatch = url.match(/\/(\d+)\/?$/);
+        const id = numMatch ? Number(numMatch[1]) : Date.now();
+        const label = numMatch ? `#${numMatch[1]}` : url;
+        onTicketsChange([...(tickets || []), { id, title: label, url }]);
+        setInputVal('');
+        setEditing(false);
+    };
+
+    const removeTicket = (ticketId) => {
+        onTicketsChange((tickets || []).filter((t) => t.id !== ticketId));
+    };
+
     return (
         <div className="flex flex-col gap-1.5">
-            {tickets.map((t) => (
-                <a
-                    key={t.id}
-                    href={t.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group inline-flex max-w-[360px] items-start gap-1.5 rounded-md text-xs text-stone-700 hover:text-stone-900"
-                    title={t.url}
-                >
-                    <span className="mt-0.5 shrink-0 rounded bg-rose-50 px-1.5 py-0.5 font-mono text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-200">
-                        #{t.id}
-                    </span>
-                    <span className="line-clamp-2 font-medium underline decoration-stone-300 underline-offset-2 group-hover:decoration-stone-900">
-                        {t.title}
-                    </span>
-                    <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-40 group-hover:opacity-90" />
-                </a>
+            {(tickets || []).map((t) => (
+                <div key={t.id} className="group inline-flex max-w-[360px] items-start gap-1.5">
+                    <a
+                        href={t.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex min-w-0 items-start gap-1.5 rounded-md text-xs text-stone-700 hover:text-stone-900"
+                        title={t.url}
+                    >
+                        <span className="mt-0.5 shrink-0 rounded bg-rose-50 px-1.5 py-0.5 font-mono text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-200">
+                            {t.title}
+                        </span>
+                        <ExternalLink className="mt-0.5 h-3 w-3 shrink-0 opacity-40 group-hover:opacity-90" />
+                    </a>
+                    <button
+                        onClick={() => removeTicket(t.id)}
+                        className="mt-0.5 shrink-0 opacity-0 group-hover:opacity-100 text-stone-400 hover:text-rose-600 transition"
+                        title="Remove"
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </div>
             ))}
+            {editing ? (
+                <input
+                    ref={inputRef}
+                    value={inputVal}
+                    onChange={(e) => setInputVal(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') addTicket();
+                        if (e.key === 'Escape') { setEditing(false); setInputVal(''); }
+                    }}
+                    onBlur={() => { if (!inputVal.trim()) setEditing(false); }}
+                    placeholder="Paste URL, Enter to add"
+                    className="w-full rounded-md border border-stone-300 px-2 py-1 text-xs outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900"
+                />
+            ) : (
+                <button
+                    onClick={() => setEditing(true)}
+                    className="inline-flex items-center gap-1 text-xs text-stone-400 hover:text-stone-700 transition"
+                >
+                    <span className="text-base leading-none">+</span> Add link
+                </button>
+            )}
         </div>
     );
 };
@@ -465,24 +493,46 @@ const statusPriority = (status, devAccount) => {
 };
 
 export default function App() {
-    const [data, setData] = useState(INITIAL_DATA);
+    const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [dateRange, setDateRange] = useState({ from: '', to: '' });
     const [sortBy, setSortBy] = useState({ column: null, direction: 'asc' });
     const [toast, setToast] = useState(null);
+
+    useEffect(() => {
+        fetch('/api/rows')
+            .then((r) => r.json())
+            .then((rows) => { setData(rows); setLoading(false); });
+    }, []);
 
     const showToast = (title, message) => {
         setToast({ title, message });
         setTimeout(() => setToast(null), 3500);
     };
 
+    const patchRow = (rowId, fields) => {
+        fetch(`/api/rows/${rowId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fields),
+        });
+    };
+
     const updateOwner = (rowId, newOwner) => {
         setData((prev) => prev.map((r) => (r.id === rowId ? { ...r, owner: newOwner } : r)));
+        patchRow(rowId, { owner: newOwner });
     };
 
     const updateStatus = (rowId, platform, newStatus) => {
         const key = platform === 'iOS' ? 'ios' : 'android';
         setData((prev) => prev.map((r) => (r.id === rowId ? { ...r, [key]: newStatus } : r)));
+        patchRow(rowId, { [key]: newStatus });
+    };
+
+    const updateTickets = (rowId, newTickets) => {
+        setData((prev) => prev.map((r) => (r.id === rowId ? { ...r, tickets: newTickets } : r)));
+        patchRow(rowId, { tickets: JSON.stringify(newTickets) });
     };
 
     const handleBuild = (row, platform) => {
@@ -576,6 +626,12 @@ export default function App() {
         return arr;
     }, [filtered, sortBy]);
 
+    if (loading) return (
+        <div className="flex min-h-screen items-center justify-center bg-stone-50 text-stone-500 text-sm">
+            Loading…
+        </div>
+    );
+
     return (
         <div className="min-h-screen bg-stone-50 font-sans text-stone-900" style={{ fontFeatureSettings: '"cv11", "ss01"' }}>
             {/* Header */}
@@ -603,29 +659,6 @@ export default function App() {
                         </button>
                     </div>
 
-                    {/* Stats strip — reflects current filter */}
-                    <div className="mt-6">
-                        <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wider text-stone-500">
-                            {isFiltered ? (
-                                <>
-                                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-stone-900" />
-                                    Showing for current filter
-                                </>
-                            ) : (
-                                <>
-                                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-stone-300" />
-                                    Showing all events
-                                </>
-                            )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl bg-stone-200 sm:grid-cols-5">
-                            <StatCard label="Events" value={stats.total} hint="in selection" />
-                            <StatCard label="Updated" value={stats.updated} hint="builds live" tone="emerald" />
-                            <StatCard label="In flight" value={stats.inProgress} hint="building / reviewing" tone="sky" />
-                            <StatCard label="Issues" value={stats.issues} hint="needs attention" tone="rose" />
-                            <StatCard label="Not started" value={stats.notBuilt} hint="awaiting build" tone="stone" />
-                        </div>
-                    </div>
                 </div>
             </header>
 
@@ -757,7 +790,7 @@ export default function App() {
                                         </td>
 
                                         {/* iOS */}
-                                        <td className="border-l border-stone-100 px-4 py-4 align-top">
+                                        <td className={`border-l border-stone-100 px-4 py-4 align-top transition-colors ${cellBg(row.ios, row.appleDev)}`}>
                                             <PlatformCell
                                                 icon={Apple}
                                                 label="iOS"
@@ -770,7 +803,7 @@ export default function App() {
                                         </td>
 
                                         {/* Android */}
-                                        <td className="border-l border-stone-100 px-4 py-4 align-top">
+                                        <td className={`border-l border-stone-100 px-4 py-4 align-top transition-colors ${cellBg(row.android, row.googleDev)}`}>
                                             <PlatformCell
                                                 icon={Smartphone}
                                                 label="Android"
@@ -784,7 +817,10 @@ export default function App() {
 
                                         {/* Tickets */}
                                         <td className="border-l border-stone-100 px-4 py-4 align-top">
-                                            <TicketLinks tickets={row.tickets} />
+                                            <TicketLinks
+                                                tickets={row.tickets}
+                                                onTicketsChange={(t) => updateTickets(row.id, t)}
+                                            />
                                         </td>
                                     </tr>
                                 ))}
