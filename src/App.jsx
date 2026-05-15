@@ -2,8 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
     Search,
     RefreshCw,
-    Hammer,
-    Upload,
     ExternalLink,
     Apple,
     Smartphone,
@@ -21,7 +19,6 @@ import {
     RotateCcw,
 } from 'lucide-react';
 
-const APP_VERSION = '7.10056';
 const OWNERS = ['Krystyna', 'Marina', 'Ilia'];
 
 // Status options users can choose in the inline dropdown.
@@ -41,12 +38,12 @@ const eventUrl   = (accountId, eventId) => `https://accounts.bizzabo.com/${accou
 
 // Compute the current store version that a real App Store Connect / Play
 // Developer API call would return. In production, replace with real data.
-const storeVersionFor = (status, hasDev) => {
+const storeVersionFor = (status, hasDev, version) => {
     if (!hasDev) return null;
-    if (status === 'Updated') return APP_VERSION;
+    if (status === 'Updated') return version;
     if (status === 'License issue/no access to acc') return '7.0098';
-    if (!status) return null; // never built
-    return '7.10042'; // older version still live while new one is in flight
+    if (!status) return null;
+    return '7.10042';
 };
 
 const STATUS_CONFIG = {
@@ -241,12 +238,55 @@ const TicketLinks = ({ tickets, onTicketsChange }) => {
     );
 };
 
-// Per-platform action block: dev account + store version + status + Build + Update buttons.
-// When dev account is missing: shows "Not configured", "No status", and disables BOTH buttons.
-const PlatformCell = ({ icon: Icon, label, devAccount, status, onStatusChange, onBuild, onUpdate }) => {
+const VersionBadge = ({ version, onSave }) => {
+    const [draft, setDraft] = useState(version);
+
+    useEffect(() => { setDraft(version); }, [version]);
+
+    const commit = () => {
+        const v = draft.trim();
+        if (v && v !== version) onSave(v);
+        else setDraft(version);
+    };
+
+    return (
+        <span className="inline-flex items-center">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-stone-500">v</span>
+            <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={commit}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.target.blur();
+                    if (e.key === 'Escape') { setDraft(version); e.target.blur(); }
+                }}
+                className="w-16 rounded border border-stone-300/50 bg-transparent px-1 py-px text-[11px] font-medium tracking-wider text-stone-500 transition-all focus:border-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-stone-400"
+                title="Click to edit version"
+            />
+        </span>
+    );
+};
+
+const IOS_BUILD_TYPES = [
+    { value: 'regular', label: 'Regular Build' },
+    { value: 'noCert',  label: 'No certificate build' },
+];
+
+const ANDROID_BUILD_TYPES = [
+    { value: 'appBundle',  label: 'App Bundle Build' },
+    { value: 'apk',        label: 'Apk Build' },
+    { value: 'cert',       label: 'Certificate Build' },
+    { value: 'screenshot', label: 'Screenshot Upload Build' },
+];
+
+// Per-platform action block: dev account + store version + status + build type picker + CircleCI Build button.
+// When dev account is missing: shows "Not configured", "No status", and disables controls.
+const PlatformCell = ({ icon: Icon, label, devAccount, status, onStatusChange, onBuild, buildTypes, version }) => {
+    const [buildType, setBuildType] = useState('');
     const hasDev = Boolean(devAccount);
-    const storeVersion = storeVersionFor(status, hasDev);
+    const storeVersion = storeVersionFor(status, hasDev, version);
     const disabledTitle = `${label} developer account required`;
+    const selectedBuild = buildTypes.find((b) => b.value === buildType);
 
     return (
         <div className="space-y-2">
@@ -282,30 +322,35 @@ const PlatformCell = ({ icon: Icon, label, devAccount, status, onStatusChange, o
                 </span>
             )}
 
-            <div className="flex flex-wrap gap-1.5">
+            <div className="space-y-2 pt-3">
+                <label className={`group relative inline-flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset transition ${selectedBuild ? 'bg-white text-stone-700 ring-stone-400' : 'bg-white text-stone-400 ring-stone-300/60 hover:ring-stone-400'}`}>
+                    <ChevronDown className="h-3 w-3 shrink-0 opacity-50 transition group-hover:opacity-100" />
+                    <span className="truncate">{selectedBuild ? selectedBuild.label : 'Select build type'}</span>
+                    <select
+                        value={buildType}
+                        onChange={(e) => setBuildType(e.target.value)}
+                        disabled={!hasDev}
+                        className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
+                        aria-label="Select build type"
+                    >
+                        <option value="" disabled hidden>Select build type</option>
+                        {buildTypes.map((b) => (
+                            <option key={b.value} value={b.value}>{b.label}</option>
+                        ))}
+                    </select>
+                </label>
+
                 <button
-                    onClick={onBuild}
-                    disabled={!hasDev}
-                    title={hasDev ? `Run a fresh build for ${label}` : disabledTitle}
-                    className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset transition ${hasDev
-                            ? 'bg-white text-stone-800 ring-stone-300 hover:bg-stone-50 hover:ring-stone-400'
-                            : 'cursor-not-allowed bg-stone-100 text-stone-400 ring-stone-200'
-                        }`}
-                >
-                    <Hammer className="h-3 w-3" strokeWidth={2.5} />
-                    Build
-                </button>
-                <button
-                    onClick={onUpdate}
-                    disabled={!hasDev}
-                    title={hasDev ? `Push v${APP_VERSION} to ${label} store` : disabledTitle}
-                    className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset transition ${hasDev
+                    onClick={() => onBuild(selectedBuild.label)}
+                    disabled={!hasDev || !buildType}
+                    title={!hasDev ? disabledTitle : !buildType ? 'Select a build type first' : `Start ${selectedBuild.label}`}
+                    className={`inline-flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-semibold ring-1 ring-inset transition ${
+                        hasDev && buildType
                             ? 'bg-stone-900 text-white ring-stone-900 hover:bg-stone-700'
                             : 'cursor-not-allowed bg-stone-100 text-stone-400 ring-stone-200'
-                        }`}
+                    }`}
                 >
-                    <Upload className="h-3 w-3" strokeWidth={2.5} />
-                    Update store
+                    CircleCI Build
                 </button>
             </div>
         </div>
@@ -495,16 +540,32 @@ const statusPriority = (status, devAccount) => {
 export default function App() {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [iosVersion, setIosVersion] = useState('7.10056');
+    const [androidVersion, setAndroidVersion] = useState('7.10056');
     const [search, setSearch] = useState('');
     const [dateRange, setDateRange] = useState({ from: '', to: '' });
     const [sortBy, setSortBy] = useState({ column: null, direction: 'asc' });
     const [toast, setToast] = useState(null);
 
     useEffect(() => {
-        fetch('/api/rows')
-            .then((r) => r.json())
-            .then((rows) => { setData(rows); setLoading(false); });
+        Promise.all([
+            fetch('/api/rows').then((r) => r.json()),
+            fetch('/api/settings').then((r) => r.json()),
+        ]).then(([rows, settings]) => {
+            setData(rows);
+            if (settings.ios_version) setIosVersion(settings.ios_version);
+            if (settings.android_version) setAndroidVersion(settings.android_version);
+            setLoading(false);
+        });
     }, []);
+
+    const saveVersion = (key, value) => {
+        fetch(`/api/settings/${key}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ value }),
+        });
+    };
 
     const showToast = (title, message) => {
         setToast({ title, message });
@@ -535,13 +596,8 @@ export default function App() {
         patchRow(rowId, { tickets: JSON.stringify(newTickets) });
     };
 
-    const handleBuild = (row, platform) => {
-        showToast('Build queued', `${platform} build started for ${row.whiteLabel}`);
-    };
-
-    const handleUpdate = (row, platform) => {
-        const store = platform === 'iOS' ? 'App Store' : 'Play Store';
-        showToast('Store update queued', `Submitting ${row.whiteLabel} v${APP_VERSION} to ${store}`);
+    const handleBuild = (_row, _platform, buildTypeLabel) => {
+        showToast('Build started', `The ${buildTypeLabel} was started.`);
     };
 
     const handleSort = (column) => {
@@ -565,6 +621,8 @@ export default function App() {
                 const q = search.toLowerCase();
                 const hay = `${d.eventName} ${d.accountName} ${d.whiteLabel} ${d.owner || ''}`.toLowerCase();
                 if (!hay.includes(q)) return false;
+                // search bypasses date filter — range was already reset in onChange if needed
+                return true;
             }
             if (dateRange.from && d.eventDate < dateRange.from) return false;
             if (dateRange.to && d.eventDate > dateRange.to) return false;
@@ -605,6 +663,7 @@ export default function App() {
                 case 'accountName':
                 case 'whiteLabel':
                 case 'owner':
+                case 'groupId':
                     cmp = compareString(a[sortBy.column], b[sortBy.column]);
                     break;
                 case 'ios':
@@ -641,13 +700,13 @@ export default function App() {
                         <div>
                             <div className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.18em] text-stone-500">
                                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                                White Label Build Console
+                                Custom Branded App Dashboard
                             </div>
                             <h1 className="mt-2 font-serif text-[34px] leading-tight tracking-tight text-stone-900">
-                                Event apps · v{APP_VERSION}
+                                CBA Events
                             </h1>
                             <p className="mt-1 text-sm text-stone-600">
-                                Track build & store-release status.
+                                ...
                             </p>
                         </div>
                         <button
@@ -677,7 +736,18 @@ export default function App() {
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
                         <input
                             value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            onChange={(e) => {
+                                const q = e.target.value;
+                                setSearch(q);
+                                if (q && (dateRange.from || dateRange.to)) {
+                                    const hasOutsider = data.some((d) => {
+                                        const hay = `${d.eventName} ${d.accountName} ${d.whiteLabel} ${d.owner || ''}`.toLowerCase();
+                                        if (!hay.includes(q.toLowerCase())) return false;
+                                        return (dateRange.from && d.eventDate < dateRange.from) || (dateRange.to && d.eventDate > dateRange.to);
+                                    });
+                                    if (hasOutsider) setDateRange({ from: '', to: '' });
+                                }
+                            }}
                             placeholder="Search events, accounts, white-label apps…"
                             className="w-full rounded-md border border-stone-300 bg-white py-2 pl-9 pr-3 text-sm placeholder-stone-400 outline-none focus:border-stone-900 focus:ring-1 focus:ring-stone-900"
                         />
@@ -711,14 +781,17 @@ export default function App() {
                                     <SortableTh column="accountName" sortBy={sortBy} onSort={handleSort}>Bizzabo Account</SortableTh>
                                     <SortableTh column="whiteLabel" sortBy={sortBy} onSort={handleSort}>White Label App</SortableTh>
                                     <SortableTh column="owner" sortBy={sortBy} onSort={handleSort}>Owner</SortableTh>
+                                    <SortableTh column="groupId" sortBy={sortBy} onSort={handleSort}>Group ID</SortableTh>
                                     <th className="px-4 py-3" style={{ minWidth: 260 }}>
                                         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-stone-500">
-                                            <Apple className="h-3 w-3" /> iOS · v{APP_VERSION}
+                                            <Apple className="h-3 w-3" /> iOS ·
+                                            <VersionBadge version={iosVersion} onSave={(v) => { setIosVersion(v); saveVersion('ios_version', v); }} />
                                         </span>
                                     </th>
                                     <th className="px-4 py-3" style={{ minWidth: 260 }}>
                                         <span className="inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-stone-500">
-                                            <Smartphone className="h-3 w-3" /> Android · v{APP_VERSION}
+                                            <Smartphone className="h-3 w-3" /> Android ·
+                                            <VersionBadge version={androidVersion} onSave={(v) => { setAndroidVersion(v); saveVersion('android_version', v); }} />
                                         </span>
                                     </th>
                                     <th className="px-4 py-3" style={{ minWidth: 320 }}>
@@ -789,6 +862,13 @@ export default function App() {
                                             />
                                         </td>
 
+                                        {/* Group ID */}
+                                        <td className="px-4 py-4 align-top">
+                                            <span className="font-mono text-xs text-stone-600">
+                                                {row.groupId || <span className="text-stone-300">—</span>}
+                                            </span>
+                                        </td>
+
                                         {/* iOS */}
                                         <td className={`border-l border-stone-100 px-4 py-4 align-top transition-colors ${cellBg(row.ios, row.appleDev)}`}>
                                             <PlatformCell
@@ -797,8 +877,9 @@ export default function App() {
                                                 devAccount={row.appleDev}
                                                 status={row.ios}
                                                 onStatusChange={(s) => updateStatus(row.id, 'iOS', s)}
-                                                onBuild={() => handleBuild(row, 'iOS')}
-                                                onUpdate={() => handleUpdate(row, 'iOS')}
+                                                onBuild={(buildTypeLabel) => handleBuild(row, 'iOS', buildTypeLabel)}
+                                                buildTypes={IOS_BUILD_TYPES}
+                                                version={iosVersion}
                                             />
                                         </td>
 
@@ -810,8 +891,9 @@ export default function App() {
                                                 devAccount={row.googleDev}
                                                 status={row.android}
                                                 onStatusChange={(s) => updateStatus(row.id, 'Android', s)}
-                                                onBuild={() => handleBuild(row, 'Android')}
-                                                onUpdate={() => handleUpdate(row, 'Android')}
+                                                onBuild={(buildTypeLabel) => handleBuild(row, 'Android', buildTypeLabel)}
+                                                buildTypes={ANDROID_BUILD_TYPES}
+                                                version={androidVersion}
                                             />
                                         </td>
 
@@ -836,7 +918,7 @@ export default function App() {
                 </div>
 
                 <p className="mt-4 text-xs text-stone-500">
-                    Test    
+                    ____    
             </p>
             </main>
 
