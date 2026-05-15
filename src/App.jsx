@@ -269,14 +269,13 @@ const VersionBadge = ({ version, onSave }) => {
 
 const IOS_BUILD_TYPES = [
     { value: 'regular', label: 'Regular Build' },
-    { value: 'noCert',  label: 'No certificate build' },
+    { value: 'cert', label: 'Certificate Build' },
+    { value: 'screenshot', label: 'Screenshot Upload Build' },
 ];
 
 const ANDROID_BUILD_TYPES = [
-    { value: 'appBundle',  label: 'App Bundle Build' },
-    { value: 'apk',        label: 'Apk Build' },
-    { value: 'cert',       label: 'Certificate Build' },
-    { value: 'screenshot', label: 'Screenshot Upload Build' },
+    { value: 'appBundle',  label: 'AAB Build' },
+    { value: 'apk',        label: 'APK Build' },
 ];
 
 // Per-platform action block: dev account + store version + status + build type picker + CircleCI Build button.
@@ -555,6 +554,9 @@ export default function App() {
             setData(rows);
             if (settings.ios_version) setIosVersion(settings.ios_version);
             if (settings.android_version) setAndroidVersion(settings.android_version);
+        }).catch((err) => {
+            console.error('Failed to load data:', err);
+        }).finally(() => {
             setLoading(false);
         });
     }, []);
