@@ -20,7 +20,7 @@ export function AppCard({ row, owners, onClick, onOwnerChange }: AppCardProps) {
         <div
             role="button"
             tabIndex={0}
-            onClick={onClick}
+            onClick={() => { if (!window.getSelection()?.toString()) onClick(); }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
             className="bg-card border border-border rounded-xl p-5 cursor-pointer hover:shadow-lg hover:border-primary/20 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
         >
