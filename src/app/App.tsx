@@ -6,8 +6,6 @@ import { patchRow, saveSetting } from './api';
 import {
     DEFAULT_OWNERS,
     compareString,
-    statusPriority,
-    formatDateRange,
 } from './constants';
 import type { Row, Ticket, ToastData, SortState, DateRangeState, BuildUpdate } from './types';
 
@@ -103,14 +101,6 @@ export default function App() {
         if (label) showToast('Build triggered', `${label} was started.`);
     };
 
-    const handleSortColumn = (column: string) => {
-        setSortBy({ column: column || null, direction: 'asc' });
-    };
-
-    const toggleSortDirection = () => {
-        setSortBy((prev) => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }));
-    };
-
     // --- Derived data ---
     const eventDates = useMemo(
         () => [...new Set(data.map((d) => d.eventDate))].sort(),
@@ -142,16 +132,10 @@ export default function App() {
             let cmp = 0;
             switch (sortBy.column) {
                 case 'cbaApp':
-                    cmp = a.eventDate.localeCompare(b.eventDate);
+                    cmp = a.cbaApp.localeCompare(b.cbaApp);
                     break;
                 case 'owner':
                     cmp = compareString(a.owner, b.owner);
-                    break;
-                case 'ios':
-                    cmp = statusPriority(a.ios, a.appleDev) - statusPriority(b.ios, b.appleDev);
-                    break;
-                case 'android':
-                    cmp = statusPriority(a.android, a.googleDev) - statusPriority(b.android, b.googleDev);
                     break;
             }
             if (cmp === 0) cmp = a.eventDate.localeCompare(b.eventDate);
@@ -205,7 +189,7 @@ export default function App() {
                     <div className="flex items-center gap-1.5">
                         <select
                             value={sortBy.column ?? ''}
-                            onChange={(e) => handleSortColumn(e.target.value)}
+                            onChange={(e) => setSortBy({ column: e.target.value || null, direction: 'asc' })}
                             className="rounded-md border border-border bg-card px-2 py-2 text-sm text-foreground outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/20"
                         >
                             {SORT_OPTIONS.map((o) => (
@@ -213,7 +197,7 @@ export default function App() {
                             ))}
                         </select>
                         <button
-                            onClick={toggleSortDirection}
+                            onClick={() => setSortBy((prev) => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
                             className="rounded-md border border-border bg-card p-2 text-muted-foreground transition hover:border-primary/30 hover:text-foreground"
                             title={sortBy.direction === 'asc' ? 'Ascending' : 'Descending'}
                         >
@@ -270,7 +254,7 @@ export default function App() {
                 <AppDetailsModal
                     row={selectedRow}
                     owners={owners}
-                    open={selectedRow !== null}
+                    open
                     onClose={() => setSelectedRowId(null)}
                     onOwnerChange={(o) => updateOwner(selectedRow.id, o)}
                     onStatusChange={(platform, s) => updateStatus(selectedRow.id, platform, s)}

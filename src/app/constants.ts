@@ -57,9 +57,7 @@ export const NULL_STATUS: StatusConfigEntry = {
     priority: 5,
 };
 
-export const NO_DEV_PRIORITY = 6;
-
-export const OWNER_PALETTE: string[] = [
+const OWNER_PALETTE: string[] = [
     'bg-violet-100 text-violet-800 ring-1 ring-inset ring-violet-300/50',
     'bg-teal-100 text-teal-800 ring-1 ring-inset ring-teal-300/50',
     'bg-orange-100 text-orange-800 ring-1 ring-inset ring-orange-300/50',
@@ -103,8 +101,3 @@ export const formatDateRange = (start: string, end: string): string => {
 export const compareString = (a: string | null, b: string | null): number =>
     (a ?? 'zzz').toLowerCase().localeCompare((b ?? 'zzz').toLowerCase());
 
-export const statusPriority = (status: string | null, devAccount: string | null): number => {
-    if (!devAccount) return NO_DEV_PRIORITY;
-    if (!status) return NULL_STATUS.priority;
-    return STATUS_CONFIG[status]?.priority ?? NULL_STATUS.priority;
-};

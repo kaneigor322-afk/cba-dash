@@ -26,10 +26,9 @@ function StatusDots({ buildStatus }: StatusDotsProps) {
     if (!buildStatus) return null;
     const done    = TERMINAL.has(buildStatus);
     const isGreen = buildStatus === 'success' || buildStatus === 'fixed';
-    const isRed   = done && !isGreen;
 
     if (done) {
-        const color = isGreen ? 'bg-emerald-500' : isRed ? 'bg-rose-500' : 'bg-stone-400';
+        const color = isGreen ? 'bg-emerald-500' : 'bg-rose-500';
         return <span className={`h-3 w-3 rounded-full ${color}`} title={STATUS_LABEL[buildStatus]} />;
     }
 

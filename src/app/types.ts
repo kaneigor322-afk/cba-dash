@@ -33,7 +33,6 @@ export interface ToastData {
     message: string;
 }
 
-export type Platform = 'ios' | 'android';
 export type SortDirection = 'asc' | 'desc';
 
 export interface SortState {
