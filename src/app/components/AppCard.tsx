@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Apple, Smartphone } from 'lucide-react';
 import { formatDateRange, STATUS_CONFIG, NULL_STATUS } from '../constants';
 import OwnerSelect from './OwnerSelect';
@@ -11,6 +12,8 @@ interface AppCardProps {
 }
 
 export function AppCard({ row, owners, onClick, onOwnerChange }: AppCardProps) {
+    const mouseDownPos = useRef({ x: 0, y: 0 });
+
     const iosCfg     = row.ios     ? (STATUS_CONFIG[row.ios]     ?? NULL_STATUS) : NULL_STATUS;
     const androidCfg = row.android ? (STATUS_CONFIG[row.android] ?? NULL_STATUS) : NULL_STATUS;
     const IosIcon     = iosCfg.icon;
@@ -20,7 +23,13 @@ export function AppCard({ row, owners, onClick, onOwnerChange }: AppCardProps) {
         <div
             role="button"
             tabIndex={0}
-            onClick={() => { if (!window.getSelection()?.toString()) onClick(); }}
+            onMouseDown={(e) => { mouseDownPos.current = { x: e.clientX, y: e.clientY }; }}
+            onClick={(e) => {
+                const dx = Math.abs(e.clientX - mouseDownPos.current.x);
+                const dy = Math.abs(e.clientY - mouseDownPos.current.y);
+                if (dx > 4 || dy > 4) return;
+                onClick();
+            }}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
             className="bg-card border border-border rounded-xl p-5 cursor-pointer hover:shadow-lg hover:border-primary/20 transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
         >
