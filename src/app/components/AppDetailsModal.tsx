@@ -23,7 +23,7 @@ export function AppDetailsModal({ row, owners, open, onClose, onOwnerChange, onS
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm data-[state=open]:animate-fade-in" />
                 <Dialog.Content
-                    className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl bg-card shadow-2xl border border-border focus:outline-none data-[state=open]:animate-modal-in"
+                    className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-2xl overflow-hidden bg-card shadow-2xl border border-border focus:outline-none data-[state=open]:animate-modal-in"
                     aria-describedby={undefined}
                 >
                     <div className="max-h-[90vh] overflow-y-auto">
